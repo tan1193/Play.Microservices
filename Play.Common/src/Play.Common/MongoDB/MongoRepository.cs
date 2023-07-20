@@ -58,7 +58,5 @@ namespace Play.Common.MongoDB
             FilterDefinition<T> filter = filterBuilder.Eq(entity => entity.Id, id);
             await dbCollection.DeleteOneAsync(filter);
         }
-
-
     }
 }
