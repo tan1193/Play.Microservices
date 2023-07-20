@@ -2,7 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "buildInventory",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Play.Inventory/src/Play.Inventory.Service/Play.Inventory.Service.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "buildCatalog",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -24,7 +40,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Play.Catalog/src/Play.Catalog.Service/Play.Catalog.Service.csproj",
+                "${workspaceFolder}/Play.Inventory/src/Play.Inventory.Service/Play.Inventory.Service.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -38,7 +54,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/Play.Catalog/src/Play.Catalog.Service/Play.Catalog.Service.csproj"
+                "${workspaceFolder}/Play.Inventory/src/Play.Inventory.Service/Play.Inventory.Service.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
