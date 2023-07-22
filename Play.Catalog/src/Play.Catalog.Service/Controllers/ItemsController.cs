@@ -1,8 +1,9 @@
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using Play.Catalog.Contracts;
 using Play.Catalog.Service.Dtos;
 using Play.Catalog.Service.Entities;
 using Play.Common;
-
 namespace Play.Catalog.Service.Controllers
 {
     [ApiController]
@@ -10,36 +11,23 @@ namespace Play.Catalog.Service.Controllers
     public class ItemsController : ControllerBase
     {
         private readonly IRepository<Item> repository;
-        private static int counter = 0;
+        private readonly IPublishEndpoint publishEndpoint;
 
-        public ItemsController(IRepository<Item> repository)
+        public ItemsController(IRepository<Item> repository, IPublishEndpoint publishEndpoint)
         {
             this.repository = repository;
+            this.publishEndpoint = publishEndpoint;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
-            counter++;
-            Console.WriteLine($"Counter: {counter}: starting...");
-            if (counter <= 2)
-            {
-                Console.WriteLine($"Counter: {counter}: delaying...");
-                await Task.Delay(TimeSpan.FromSeconds(10));
-            }
-
-            if (counter <= 4)
-            {
-                Console.WriteLine($"Counter: {counter}: throwing exception...");
-                return StatusCode(500);
-            }
-            Console.WriteLine($"Counter: {counter}: returning items...");
             var items = (await repository.GetAllAsync()).Select(item => item.AsDto());
             return Ok(items);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ItemDto>> GetByIdAsync(Guid id)
+        public async Task<ActionResult<ItemDto>> GetByIdAsync([FromBody] Guid id)
         {
             Item item = await repository.GetAsync(id);
             if (item is null)
@@ -61,6 +49,8 @@ namespace Play.Catalog.Service.Controllers
             };
             await repository.CreateAsync(item);
 
+            await publishEndpoint.Publish(new CatalogItemCreatedEvent(item.Id, item.Name, item.Description));
+
             return CreatedAtAction(nameof(GetByIdAsync), new { id = item.Id }, item);
         }
 
@@ -77,6 +67,8 @@ namespace Play.Catalog.Service.Controllers
             existingItem.Price = updateItemDto.Price;
             await repository.UpdateAsync(existingItem);
 
+            await publishEndpoint.Publish(new CatalogItemUpdatedEvent(existingItem.Id, existingItem.Name, existingItem.Description));
+
             return NoContent();
         }
 
@@ -89,6 +81,8 @@ namespace Play.Catalog.Service.Controllers
                 return NotFound();
             }
             await repository.RemoveAsync(id);
+
+            await publishEndpoint.Publish(new CatalogItemDeletedEvent(id));
 
             return NoContent();
         }
