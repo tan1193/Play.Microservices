@@ -10,6 +10,7 @@ namespace Play.Catalog.Service.Controllers
     public class ItemsController : ControllerBase
     {
         private readonly IRepository<Item> repository;
+        private static int counter = 0;
 
         public ItemsController(IRepository<Item> repository)
         {
@@ -17,10 +18,24 @@ namespace Play.Catalog.Service.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ItemDto>> GetAsync()
+        public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
+            counter++;
+            Console.WriteLine($"Counter: {counter}: starting...");
+            if (counter <= 2)
+            {
+                Console.WriteLine($"Counter: {counter}: delaying...");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+
+            if (counter <= 4)
+            {
+                Console.WriteLine($"Counter: {counter}: throwing exception...");
+                return StatusCode(500);
+            }
+            Console.WriteLine($"Counter: {counter}: returning items...");
             var items = (await repository.GetAllAsync()).Select(item => item.AsDto());
-            return items;
+            return Ok(items);
         }
 
         [HttpGet("{id}")]
