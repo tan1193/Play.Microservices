@@ -1,3 +1,4 @@
+using Play.Common.MassTransit;
 using Play.Common.MongoDB;
 using Play.Inventory.Service.Clients;
 using Play.Inventory.Service.Entities;
@@ -13,7 +14,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMongo()
-                .AddMongoRepository<InventoryItem>("inventoryItems");
+                .AddMongoRepository<InventoryItem>("inventoryItems")
+                .AddMongoRepository<CatalogItem>("catalogItems")
+                .AddMassTransitWithRabbitMq();
 
 builder.Services.AddHttpClient<CatalogClient>(client => client.BaseAddress = new Uri(builder.Configuration["Services:Catalog"]))
 .AddTransientHttpErrorPolicy(p => p.Or<TimeoutRejectedException>().WaitAndRetryAsync(
